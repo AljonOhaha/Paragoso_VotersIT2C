@@ -7,8 +7,12 @@ package votersp;
 
 
 import java.sql.*;
+import java.util.InputMismatchException;
+import java.util.Scanner;
 
 public class config {
+    Scanner sc = new Scanner(System.in);
+    
     public static Connection connectDB() {
         Connection con = null;
         try {
@@ -132,27 +136,37 @@ public class config {
      
      
       public void deleteRecords(String sql, Object... values) {
-    try (Connection conn = this.connectDB();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (Connection conn = this.connectDB();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-        
-        for (int i = 0; i < values.length; i++) {
-            if (values[i] instanceof Integer) {
-                pstmt.setInt(i + 1, (Integer) values[i]); 
-            } else {
-                pstmt.setString(i + 1, values[i].toString()); 
+            for (int i = 0; i < values.length; i++) {
+                if (values[i] instanceof Integer) {
+                    pstmt.setInt(i + 1, (Integer) values[i]); 
+                } else {
+                    pstmt.setString(i + 1, values[i].toString()); 
+                }
+            }
+
+            pstmt.executeUpdate();
+            System.out.println("Record deleted successfully!");
+        } catch (SQLException e) {
+            System.out.println("Error deleting record: " + e.getMessage());
+        }
+    }
+      
+      public int integerValidate(){
+          int getNum;
+          
+          while(true){
+                try{
+                getNum = sc.nextInt();
+                break;
+            } catch(InputMismatchException e){
+                System.out.print("Invalid input: Input must only be numbers, try again: ");
+                sc.next();
             }
         }
-
-        pstmt.executeUpdate();
-        System.out.println("Record deleted successfully!");
-    } catch (SQLException e) {
-        System.out.println("Error deleting record: " + e.getMessage());
+        return getNum;
     }
-}
-
-   
-
-    
 }
 

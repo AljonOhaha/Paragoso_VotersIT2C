@@ -27,7 +27,7 @@ public class Programs {
         int program = sc.nextInt();
 
         String programName = program == 1 ? "Scholarship" : "Sports League";
-        String sql = "INSERT INTO programs (VID, programs) VALUES (?, ?)";
+        String sql = "INSERT INTO programs (PVID, programs) VALUES (?, ?)";
         
         try (Connection conn = connectDB();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -41,7 +41,9 @@ public class Programs {
     }
 
     public void viewPrograms() {
-        String sql = "SELECT * FROM programs";
+         String sql = "SELECT PID , programs, fname, lname  " +
+                     "FROM programs  " +
+                     "JOIN eligibility e ON programs.PVID = e.VID";
 
         try (Connection conn = connectDB();
              PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -51,21 +53,16 @@ public class Programs {
             System.out.println("---------------------------");
 
             while (rs.next()) {
-                int voterID = rs.getInt("VID");
+                int voterID = rs.getInt("PID");
                 String programName = rs.getString("programs");
+                String voterName = rs.getString("fname") + " " + rs.getString("lname");
 
-                
-                if (programName.equalsIgnoreCase(SPORTS_LEAGUE_PROGRAM) || 
-                    programName.equalsIgnoreCase(SCHOLARSHIP_PROGRAM)) {
-
-                    System.out.printf("%-10d %-20s%n", voterID, programName);
-                }
+                System.out.printf("%-10d %-20s %-25s%n", voterID, programName, voterName);
             }
         } catch (SQLException e) {
             System.out.println("Error retrieving programs: " + e.getMessage());
         }
     }
 }
-    
 
 
