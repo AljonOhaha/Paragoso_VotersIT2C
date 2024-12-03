@@ -1,294 +1,174 @@
 package votersp;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
-import votersp.Programs;
+
 public class Registration {
-
-    private static PurokListing PurokListing;
-    private static Object programs;
-
-    private Connection connectDB() {
-        Connection con = null;
-        try {
-            Class.forName("org.sqlite.JDBC");
-            con = DriverManager.getConnection("jdbc:sqlite:votersp.db");
-        } catch (Exception e) {
-            System.out.println("Connection Failed: " + e.getMessage());
-        }
-        return con;
-    }
-
-  public int addVoter() {
-    Scanner sc = new Scanner(System.in);
-    System.out.println("===== Voter Registration =====");
-    String rfname, rlname, rpurok;
-    int age;
-
-    // Input Validation for First Name and Last Name
-    System.out.print("Enter First Name: ");
-    rfname = sc.nextLine();
-    System.out.print("Enter Last Name: ");
-    rlname = sc.nextLine();
-
-    // Age Input Validation (only accepts integers)
-    while (true) {
-        System.out.print("Enter Age: ");
-        if (sc.hasNextInt()) {
-            age = sc.nextInt();  // If input is a valid integer, proceed
-            sc.nextLine(); // Clear buffer
-            break;  // Exit the loop once valid input is received
-        } else {
-            System.out.println("Invalid input! Please enter a valid integer for age.");
-            sc.nextLine(); // Clear the invalid input
-        }
-    }
-
-    // Purok Input
-    System.out.print("Enter Purok: ");
-    rpurok = sc.nextLine();
-
-    // SQL query to insert the data
-    String sql = "INSERT INTO registration (RFNAME, RLNAME, AGE, RPUROK) VALUES (?, ?, ?, ?)";
-    try (Connection conn = connectDB();
-         PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-        pstmt.setString(1, rfname);
-        pstmt.setString(2, rlname);
-        pstmt.setInt(3, age);
-        pstmt.setString(4, rpurok);
-        pstmt.executeUpdate();
-
-        ResultSet keys = pstmt.getGeneratedKeys();
-        if (keys.next()) {
-            System.out.println("Registration successful!");
-            return keys.getInt(1); // Return voter ID
-        }
-    } catch (SQLException e) {
-        System.out.println("Error: " + e.getMessage());
-    }
-    return -1;  // Return -1 if there is an error
-}
-
-
-    // View all registered voters
-  public void viewVoters() {
-    // Updated SQL query to include the AGE column
-    String sql = "SELECT RID, RFNAME, RLNAME, RPUROK, AGE FROM registration";
-    try (Connection conn = connectDB();
-         PreparedStatement pstmt = conn.prepareStatement(sql);
-         ResultSet rs = pstmt.executeQuery()) {
-
-        System.out.println("\n===== Registered Voters =====");
-        System.out.println("+----------------------------------------------------+");
-        System.out.println("| ID   | Name                   | Purok        | Age |");
-        System.out.println("+----------------------------------------------------+");
-
-        while (rs.next()) {
-            int voterId = rs.getInt("RID");
-            String firstName = rs.getString("RFNAME");
-            String lastName = rs.getString("RLNAME");
-            String purok = rs.getString("RPUROK");
-            int age = rs.getInt("AGE");  // Fetch the Age
-
-            // Print each voter's data in a structured format, including Age
-            System.out.printf("| %-4d | %-21s | %-12s | %-3d |\n", voterId, firstName + " " + lastName, purok, age);
-        }
-
-        System.out.println("+----------------------------------------------------+");
-
-    } catch (SQLException e) {
-        System.out.println("Error: " + e.getMessage());
-    }
-}
-
-
     
     
-    public void deleteVoter() {
-        Scanner sc = new Scanner(System.in);
-        System.out.print("Enter Voter ID to delete: ");
-        int voterId = sc.nextInt();
-
-        // SQL query to delete the voter
-        String sql = "DELETE FROM registration WHERE RID = ?";
-        try (Connection conn = connectDB();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, voterId);
-
-            int rowsAffected = pstmt.executeUpdate();
-            if (rowsAffected > 0) {
-                System.out.println("Voter with ID " + voterId + " has been deleted.");
-            } else {
-                System.out.println("No voter found with ID " + voterId);
-            }
-        } catch (SQLException e) {
-            System.out.println("Error: " + e.getMessage());
-        }
-    }
-
-   
-
-
-
-
-
-   
-     public static void main(String[] args) {
-    Scanner in = new Scanner(System.in);
-    String another = null;
-
-    // Initialize objects
-    Programs programs = new Programs();
-    Registration registration = new Registration();
-    PurokListing purokListing = new PurokListing();
-
-    do {
-        // Main Menu
-        System.out.println("\n===== Main Menu =====");
-        System.out.println("1. Voter Registration");
-        System.out.println("2. Purok Listings");
-        System.out.println("3. Programs");
-        System.out.println("4. Exit");
-        System.out.print("Enter your action: ");
-        int action = in.nextInt();
-
-        switch (action) {
-            case 1:
-                voterRegistrationMenu(in, registration);
-                break;
-            case 2:
-                purokMenu(in, purokListing);
-                break;
-            case 3:
-                programMenu(in, programs);
-                break;
-            case 4:
-                System.out.println("Exiting the system...");
-                System.exit(0);
-                break;
-            default:
-                System.out.println("Invalid choice. Please select a valid option.");
-                break;
-        }
-
-        // Ask if the user wants to continue
-        System.out.println("Continue (yes|no)?");
-        another = in.next();
-
-    } while (another.equalsIgnoreCase("yes"));
-
-    System.out.println("Thank you for using the system!");
-}
-
-// Voter Registration Menu
-private static void voterRegistrationMenu(Scanner in, Registration registration) {
-    int action;
-    do {
-        System.out.println("\n===== Voter Registration Menu =====");
-        System.out.println("1. Add Voter");
-        System.out.println("2. View Voters");
-        System.out.println("3. Delete Voters");
       
-        System.out.println("4. Back to Main Menu");
-        System.out.print("Enter your action: ");
-        action = in.nextInt();
-
-        switch (action) {
-            case 1:
-                registration.addVoter();
-                break;
-            case 2:
-                registration.viewVoters();
-                break;
-            case 3:
-                registration.deleteVoter();
-                break;
-            case 4:
-                System.out.println("Returning to Main Menu...");
-                break;
-            default:
-                System.out.println("Invalid choice. Please try again.");
-                break;
-        }
-    } while (action != 4);
+     public Connection connectDB() {
+    try {
+        // Update the path to your actual database file
+        String url = "jdbc:sqlite:votersp.db";  // Absolute path
+        Connection con = DriverManager.getConnection(url);
+        System.out.println("Connection Successful");
+        return con;
+    } catch (SQLException e) {
+        System.out.println("Database connection error: " + e.getMessage());
+    }
+    return null;
 }
 
-// Purok Listing Menu
-private static void purokMenu(Scanner in, PurokListing purokListing) {
-    int action;
-    do {
-        System.out.println("\n===== Purok Listing Menu =====");
-        System.out.println("1. Validate Purok for Voter");
-        System.out.println("2. View Purok Listings");
-        System.out.println("3. Back to Main Menu");
-        System.out.print("Enter your action: ");
+public void registerVoter(Scanner in) {
+    boolean isRegistered = false; // Track registration status
+    int currentVoterId = -1;      // Store registered voter ID
 
-        // Validate numeric input
-        while (!in.hasNextInt()) {
-            System.out.println("Invalid input. Please enter a number.");
-            System.out.print("Enter your action: ");
-            in.next();
-        }
-        action = in.nextInt();
-        in.nextLine(); // Clear the input buffer
+    Connection con = connectDB();
+    if (con == null) {
+        System.out.println("Unable to connect to the database.");
+        return;
+    }
 
-        switch (action) {
-            case 1:
-                System.out.print("Enter Voter ID to validate: ");
-                while (!in.hasNextInt()) {
-                    System.out.println("Invalid input. Please enter a valid Voter ID.");
-                    System.out.print("Enter Voter ID to validate: ");
-                    in.next();
-                }
-                int voterId = in.nextInt();
-                in.nextLine(); // Clear the buffer
-                purokListing.validatePuroks(voterId);
-                break;
-            case 2:
-                purokListing.viewPuroks();
-                break;
-            case 3:
-                System.out.println("Returning to Main Menu...");
-                break;
-            default:
-                System.out.println("Invalid choice. Please try again.");
-                break;
+    while (true) { // Keep showing the menu until the user decides to return to the main menu
+        if (!isRegistered) {
+            // Registration menu
+            System.out.println("\n===== Registration Menu =====");
+            System.out.println("1. Register Voter");
+            System.out.println("2. Go Back to Main Menu");
+            System.out.print("Enter your choice: ");
+            int choice = in.nextInt();
+            in.nextLine(); // Consume the newline
+
+            switch (choice) {
+                case 1:
+                    // Start voter registration
+                    System.out.print("Enter your Registered Voter ID: ");
+                    int voterId = in.nextInt();
+                    in.nextLine(); // Consume the newline
+
+                    try {
+                        // Validate if the voter ID exists in the database
+                        String sql = "SELECT * FROM voters WHERE voter_id = ?";
+                        PreparedStatement pst = con.prepareStatement(sql);
+                        pst.setInt(1, voterId);
+                        ResultSet rs = pst.executeQuery();
+
+                        if (rs.next()) {
+                            // Voter ID is valid
+                            String name = rs.getString("name");
+                            String purok = rs.getString("purok");
+                            String status = rs.getString("status");
+
+                            System.out.println("\n===== Voter Found =====");
+                            System.out.println("Voter ID: " + voterId);
+                            System.out.println("Name: " + name);
+                            System.out.println("Purok: " + purok);
+                            System.out.println("Status: " + status);
+                            System.out.println("=========================");
+
+                            if (status.equals("Not Enrolled")) {
+                                // Update the status to "Registered"
+                                String updateSql = "UPDATE voters SET status = ? WHERE voter_id = ?";
+                                PreparedStatement updatePst = con.prepareStatement(updateSql);
+                                updatePst.setString(1, "Registered");
+                                updatePst.setInt(2, voterId);
+                                updatePst.executeUpdate();
+                                System.out.println("Successfully registered as a voter!");
+
+                                currentVoterId = voterId; // Store voter ID
+                                isRegistered = true;     // Update registration status
+                            } else {
+                                System.out.println("You are already registered.");
+                                currentVoterId = voterId; // Store voter ID
+                                isRegistered = true;     // Update registration status
+                            }
+                        } else {
+                            // Voter ID does not exist in the database
+                            System.out.println("Invalid Voter ID. You must be a registered voter in this barangay.");
+                        }
+
+                        rs.close();
+                        pst.close();
+                    } catch (SQLException e) {
+                        System.out.println("Database error: " + e.getMessage());
+                    }
+                    break;
+
+                case 2:
+                    System.out.println("Returning to main menu...");
+                    return;
+
+                default:
+                    System.out.println("Invalid choice. Try again.");
+            }
+        } else {
+            // View details menu (post-registration)
+            System.out.println("\n===== Post-Registration Menu =====");
+            System.out.println("1. View Voter Details");
+            System.out.println("2. Go Back to Main Menu");
+            System.out.print("Enter your choice: ");
+            int choice = in.nextInt();
+            in.nextLine(); // Consume the newline
+
+            switch (choice) {
+                case 1:
+                    // View voter details
+                    viewVoterDetails(currentVoterId);
+                    break;
+
+                case 2:
+                    System.out.println("Returning to main menu...");
+                    return;
+
+                default:
+                    System.out.println("Invalid choice. Try again.");
+            }
         }
-    } while (action != 3);
+    }
 }
 
-// Programs Menu
-private static void programMenu(Scanner in, Programs programs) {
-    int action;
-    do {
-        System.out.println("===== Programs Menu =====");
-        System.out.println("1. Enroll in Programs");
-        System.out.println("2. View Voters in Programs");
-        System.out.println("3. Back to Main Menu");
-        System.out.print("Choose an action: ");
-        action = in.nextInt();
 
-        switch (action) {
-            case 1:
-                // Ask the user for the voter ID
-                System.out.print("Enter Voter ID to enroll: ");
-                int voterId = in.nextInt();  // Get voter ID input from user
 
-                // Enroll the voter in programs
-                programs.enrollInPrograms(voterId);
-                break;
-            case 2:
-                // View all voters in programs
-                programs.viewVotersInPrograms();
-                break;
-            case 3:
-                System.out.println("Returning to Main Menu...");
-                break;
-            default:
-                System.out.println("Invalid choice. Please try again.");
-                break;
+public void viewVoterDetails(int voterId) {
+    Connection con = connectDB();
+    if (con == null) {
+        System.out.println("Unable to connect to the database.");
+        return;
+    }
+
+    try {
+        // Fetch voter details from the database
+        String sql = "SELECT * FROM voters WHERE voter_id = ?";
+        PreparedStatement pst = con.prepareStatement(sql);
+        pst.setInt(1, voterId);
+        ResultSet rs = pst.executeQuery();
+
+        if (rs.next()) {
+            // Retrieve voter details
+            String name = rs.getString("name");
+            String purok = rs.getString("purok");
+            String status = rs.getString("status");
+
+            // Output voter details
+            System.out.println("\n===== Voter Details =====");
+            System.out.println("Voter ID: " + voterId);
+            System.out.println("Name: " + name);
+            System.out.println("Purok: " + purok);
+            System.out.println("Status: " + status);
+            System.out.println("=========================");
+        } else {
+            System.out.println("Voter ID not found.");
         }
-    } while (action != 3);
+
+        rs.close();
+        pst.close();
+        con.close();
+    } catch (SQLException e) {
+        System.out.println("Database error: " + e.getMessage());
+    }
 }
 
 }
