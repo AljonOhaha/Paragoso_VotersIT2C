@@ -63,42 +63,76 @@ public class config {
     }
 }
 
-     public void viewRecords(String sqlQuery, String[] columnHeaders, String[] columnNames) {
-        // Check that columnHeaders and columnNames arrays are the same length
-        if (columnHeaders.length != columnNames.length) {
-            System.out.println("Error: Mismatch between column headers and column names.");
-            return;
+   public void viewRecords(String sqlQuery, String[] headers, String[] columns) {
+    viewRecordsWithParams(sqlQuery, headers, columns);
+}
+
+// Method to handle both parameterized and simple queries
+public void viewRecordsWithParams(String sqlQuery, String[] headers, String[] columns, Object... params) {
+    if (headers.length != columns.length) {
+        System.out.println("Error: Mismatch between column headers and column names.");
+        return;
+    }
+
+    try (Connection conn = connectDB();  // Establish connection
+         PreparedStatement pstmt = conn.prepareStatement(sqlQuery)) {
+
+        // Set values if any parameters exist
+        setPreparedStatementValues(pstmt, params);
+
+        try (ResultSet rs = pstmt.executeQuery()) {
+            // Print headers
+            printTableHeaders(headers);
+
+            // Print each row
+            while (rs.next()) {
+                printTableRow(rs, columns);
+            }
+            System.out.println("---------------------------------------------------------------------------------------------------");
         }
 
-        try (Connection conn = this.connectDB();
-             PreparedStatement pstmt = conn.prepareStatement(sqlQuery);
-             ResultSet rs = pstmt.executeQuery()) {
+    } catch (SQLException e) {
+        System.out.println("Database error: " + e.getMessage());
+    }
+}
 
-            // Print the headers dynamically
-            StringBuilder headerLine = new StringBuilder();
-            headerLine.append("--------------------------------------------------------------------------------\n| ");
-            for (String header : columnHeaders) {
-                headerLine.append(String.format("%-20s | ", header)); // Adjust formatting as needed
-            }
-            headerLine.append("\n--------------------------------------------------------------------------------");
+// Helper method to print table headers
+private void printTableHeaders(String[] headers) {
+    StringBuilder headerLine = new StringBuilder("\n---------------------------------------------------------------------------------------------------\n| ");
+    for (String header : headers) {
+        headerLine.append(String.format("%-20s | ", header));
+    }
+    headerLine.append("\n---------------------------------------------------------------------------------------------------");
+    System.out.println(headerLine);
+}
 
-            System.out.println(headerLine.toString());
+// Helper method to print rows dynamically
+private void printTableRow(ResultSet rs, String[] columns) throws SQLException {
+    StringBuilder row = new StringBuilder("| ");
+    for (String column : columns) {
+        String value = rs.getString(column);
+        row.append(String.format("%-20s | ", value != null ? value : "N/A"));
+    }
+    System.out.println(row);
+}
 
-            // Print the rows dynamically based on the provided column names
-            while (rs.next()) {
-                StringBuilder row = new StringBuilder("| ");
-                for (String colName : columnNames) {
-                    String value = rs.getString(colName);
-                    row.append(String.format("%-20s | ", value != null ? value : "")); // Adjust formatting
-                }
-                System.out.println(row.toString());
-            }
-            System.out.println("--------------------------------------------------------------------------------");
-
-        } catch (SQLException e) {
-            System.out.println("Error retrieving records: " + e.getMessage());
+// Helper method to set PreparedStatement values dynamically
+private void setPreparedStatementValues(PreparedStatement pstmt, Object... values) throws SQLException {
+    for (int i = 0; i < values.length; i++) {
+        Object value = values[i];
+        if (value instanceof Integer) {
+            pstmt.setInt(i + 1, (Integer) value);
+        } else if (value instanceof Double) {
+            pstmt.setDouble(i + 1, (Double) value);
+        } else if (value instanceof Boolean) {
+            pstmt.setBoolean(i + 1, (Boolean) value);
+        } else {
+            pstmt.setString(i + 1, value.toString());
         }
     }
+}
+
+
       public void updateRecords(String sql, Object... values) {
         try (Connection conn = this.connectDB(); // Use the connectDB method
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -169,4 +203,3 @@ public class config {
         return getNum;
     }
 }
-

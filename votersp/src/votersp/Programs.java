@@ -7,7 +7,7 @@ import java.util.Scanner;
 public class Programs {
 
     
-
+    config conf = new config();
     public boolean validateAndEnrolls(int voterId, Scanner in) {
        
         Connection con = connectDB();
@@ -47,7 +47,9 @@ public class Programs {
                 if (rsProgramCheck.next()) {
                     System.out.println("You are already enrolled in " + rsProgramCheck.getString("program_name") + ".");
                     return true;
+                  
                 }
+                rsProgramCheck.close();
 
                 // Show program options
                 System.out.println("\nAvailable Programs:");
@@ -96,14 +98,14 @@ public class Programs {
     public void postEnrollmentMenu(int voterId, Scanner in) {
         while (true) {
             System.out.println("\n===== Post-Enrollment Menu =====");
-            System.out.println("1. View Voter Details");
+            System.out.println("1. View Program Details");
             System.out.println("2. Go Back to Main Menu");
             System.out.print("Enter your choice: ");
             int choice = in.nextInt();
 
             switch (choice) {
                 case 1:
-                    viewProgramDetails(voterId);
+                    viewProgramOptions( in);
                     break;
                 case 2:
                     System.out.println("Returning to main menu...");
@@ -113,6 +115,53 @@ public class Programs {
             }
         }
     }
+
+    public void viewProgramOptions(Scanner in) {
+        while (true) {
+            System.out.println("\n===== Program View Options =====");
+            System.out.println("1. View General Program Enrollment");
+            System.out.println("2. View Individual Program Details");
+            System.out.println("3. Back to Previous Menu");
+            System.out.print("Enter your choice: ");
+            int choice = in.nextInt();
+
+            switch (choice) {
+                case 1:
+                    viewGeneralProgramDetails();
+                    break;
+                case 2:
+                    System.out.print("Enter Voter ID to view details: ");
+                    int voterId = in.nextInt();
+                    viewProgramDetails(voterId);
+                    break;
+                case 3:
+                    return;
+                default:
+                    System.out.println("Invalid choice. Try again.");
+            }
+        }
+    }
+
+
+    public void viewGeneralProgramDetails() {
+        String query = "SELECT voters.voter_id, voters.name, programs.program_name " +
+                       "FROM voters " +
+                       "INNER JOIN programs ON voters.voter_id = programs.voter_id " +
+                       "ORDER BY voters.name ASC";
+
+        // Define the headers for display
+        String[] headers = {"Voter ID", "Name", "Enrolled Program"};
+        String[] columns = {"voter_id", "name", "program_name"};
+
+        // Verify and display records using the config method
+        try {
+            conf.viewRecords(query, headers, columns); // Ensure this method works correctly
+        } catch (Exception e) {
+            System.out.println("Error displaying general program details: " + e.getMessage());
+        }
+    }
+
+
 
    
     public void viewProgramDetails(int voterId) {

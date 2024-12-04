@@ -8,7 +8,7 @@ import java.util.Scanner;
 public class Registration {
     
     
-      
+      config conf = new config();
      public Connection connectDB() {
     try {
         // Update the path to your actual database file
@@ -116,6 +116,7 @@ public void registerVoter(Scanner in) {
             switch (choice) {
                 case 1:
                     // View voter details
+                   
                     viewVoterDetails(currentVoterId);
                     break;
 
@@ -130,7 +131,14 @@ public void registerVoter(Scanner in) {
     }
 }
 
+    public void viewAllVoters() {
+        String query = "SELECT voter_id, name, purok, status FROM voters";
+        String[] headers = {"Voter ID", "Name", "Purok", "Status"};
+        String[] columns = {"voter_id", "name", "purok", "status"};
+        conf.viewRecords(query, headers, columns);
+    }
 
+    
 
 public void viewVoterDetails(int voterId) {
     Connection con = connectDB();
