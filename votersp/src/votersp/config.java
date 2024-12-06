@@ -24,7 +24,10 @@ public class config {
         }
         return con;
     }
-        public void AddRecords(String sql, Object... values) {
+       
+    
+    
+    public void AddRecords(String sql, Object... values) {
     Connection conn = this.connectDB(); // Use the connectDB method
     if (conn == null) {
         System.out.println("Database connection failed.");

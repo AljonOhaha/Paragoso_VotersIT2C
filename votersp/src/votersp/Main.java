@@ -2,6 +2,7 @@ package votersp;
 
 import java.util.InputMismatchException;
 import java.util.Scanner;
+import static votersp.config.connectDB;
 
 public class Main {
     public static Registration rs = new Registration();
@@ -26,6 +27,7 @@ public class Main {
                     case 1:
                         voterRegistrationMenu(in, rs);
                         break;
+                        
                     case 2:
                         programMenu(in, programs);
                         break;
@@ -108,7 +110,7 @@ public class Main {
                         rs.viewAllVoters();
                         System.out.print("Enter your Voter ID to enroll: ");
                         int voterId = getValidIntInput(in);  // Validated input method
-                        programs.validateAndEnrolls(voterId, in);
+                        programs.validateAndEnroll(voterId, in);
                         break;
                     case 2:
                         programs.viewProgramOptions(in);
